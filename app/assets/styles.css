@@ -1,0 +1,700 @@
+:root {
+  --bg: #0f1117;
+  /* 글래스 표면 — 강한 투명(빡세게). 알파를 올리면 더 불투명해진다(취향대로 조절). */
+  --surface: rgba(24, 27, 36, 0.5);
+  --surface-2: rgba(31, 35, 48, 0.46);
+  --border: rgba(255, 255, 255, 0.1);
+  --text: #e6e9f0;
+  --muted: #9aa3b5;
+  --accent: #ff8a3d;
+  --accent-soft: #2a2018;
+  --accent-theory: #7aa2ff;
+  --accent-theory-soft: #19203a;
+  --correct: #3ddc84;
+  --correct-soft: #14301f;
+  --wrong: #ff6b6b;
+  --wrong-soft: #321a1c;
+  --radius: 12px;
+  --mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --sans: ui-sans-serif, system-ui, "Pretendard", "Apple SD Gothic Neo",
+    "Noto Sans KR", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* 솔리드 폴백. 컴포지터로 창 자체를 투명하게 쓰는 환경(Electron/kiosk 등)이라면
+     이 한 줄을 `transparent` 로 바꾸면 빈 배경으로 데스크톱이 비친다.
+     단, 일반 파이어폭스/크롬 웹 콘텐츠는 데스크톱까지 투명하게 못 뚫는다. */
+  background: #0b0d13;
+}
+
+body {
+  /* 페이지 배경 = 은은한 다크 그라데이션(글래스 표면이 비칠 backdrop).
+     "강한 투명"은 표면을 글래스(backdrop-blur)로 처리해 이 위로 표현한다. */
+  background:
+    radial-gradient(1100px 560px at 18% -8%, rgba(255, 138, 61, 0.13), transparent 60%),
+    radial-gradient(900px 520px at 102% 4%, rgba(80, 140, 255, 0.1), transparent 55%),
+    linear-gradient(165deg, #11141c 0%, #0b0d13 62%);
+  background-attachment: fixed;
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+/* 글래스 표면 — 페이지 배경을 강하게 비추는 frosted 효과 (Firefox 103+ · Chrome 76+ 지원). */
+.card,
+.lesson-card,
+.choice,
+.hero__progress,
+.feedback,
+.chat-panel,
+.chat-bubble,
+.chat-composer__input {
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+
+.chat-panel {
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
+}
+
+/* ── Home ───────────────────────────────────────────── */
+
+.hero {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.hero__title {
+  font-size: 44px;
+  margin: 0;
+  letter-spacing: -0.02em;
+  background: linear-gradient(135deg, var(--accent), #ffd6a8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero__subtitle {
+  color: var(--muted);
+  margin: 8px 0 16px;
+  font-size: 16px;
+}
+
+.hero__progress {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 14px;
+}
+
+.unit {
+  margin-bottom: 28px;
+}
+
+.unit__title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 12px;
+  font-weight: 600;
+}
+
+.unit__lessons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lesson-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  color: var(--text);
+  font-size: 17px;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.05s, background 0.15s;
+}
+
+.lesson-card:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.lesson-card:active {
+  transform: translateY(1px);
+}
+
+.lesson-card--done {
+  border-color: var(--correct);
+}
+
+.lesson-card__badge {
+  color: var(--correct);
+  font-weight: 700;
+}
+
+/* ── Tracks (실용 / FP 이론) ─────────────────────────── */
+
+.track {
+  margin-bottom: 44px;
+}
+
+.track__header {
+  margin-bottom: 18px;
+}
+
+.track__title {
+  font-size: 22px;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+.track__subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* 이론 트랙: 좌측 액센트 바 + 파랑-보라 톤으로 실용 트랙과 시각적 분리 */
+.track--theory {
+  position: relative;
+  padding: 20px 0 4px 22px;
+  border-left: 2px solid color-mix(in oklab, var(--accent-theory) 55%, transparent);
+}
+
+.track--theory .track__title {
+  background: linear-gradient(135deg, var(--accent-theory), #cdd9ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.track--theory .lesson-card:hover {
+  border-color: var(--accent-theory);
+  background: var(--surface-2);
+}
+
+.level-group {
+  margin-bottom: 26px;
+}
+
+.level-group__title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: var(--accent-theory);
+  margin: 0 0 14px;
+  padding: 4px 12px;
+  display: inline-block;
+  background: var(--accent-theory-soft);
+  border: 1px solid color-mix(in oklab, var(--accent-theory) 30%, transparent);
+  border-radius: 999px;
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+
+.level-group .unit__title {
+  font-size: 13px;
+}
+
+/* ── Lesson ─────────────────────────────────────────── */
+
+.lesson-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.link-back {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 0;
+  font-family: var(--sans);
+}
+
+.link-back:hover {
+  color: var(--text);
+}
+
+.lesson-header__title {
+  font-weight: 600;
+  flex: 1;
+}
+
+.progress {
+  flex: 0 0 120px;
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  animation: rise 0.2s ease;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prose p {
+  margin: 0 0 14px;
+  font-size: 16.5px;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── 마크다운 렌더러 (ui/markdown) ───────────────────────── */
+
+.md > :first-child {
+  margin-top: 0;
+}
+
+.md > :last-child {
+  margin-bottom: 0;
+}
+
+.md p {
+  margin: 0 0 14px;
+  font-size: 16.5px;
+}
+
+.md .code {
+  margin: 0 0 16px;
+}
+
+.md-h {
+  margin: 22px 0 10px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.md-h1 {
+  font-size: 20px;
+}
+
+.md h4.md-h {
+  font-size: 17px;
+}
+
+.md-ul {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.md-ul li {
+  margin: 4px 0;
+  font-size: 16px;
+}
+
+/* 인라인 코드 — prose·prompt·feedback 공용. choices(이미 mono)에선 배경만 약하게. */
+.md-icode {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: #0b0d13;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 1px 5px;
+  color: #ffd6a8;
+}
+
+.choice .md-icode,
+.exercise__prompt .md-icode {
+  background: rgba(255, 138, 61, 0.1);
+}
+
+.exercise__prompt {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+.code {
+  background: rgba(7, 9, 14, 0.55);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  overflow-x: auto;
+  margin: 0 0 20px;
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+}
+
+.code code {
+  font-family: var(--mono);
+  font-size: 14.5px;
+  color: #d6deeb;
+  white-space: pre;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.choice {
+  text-align: left;
+  background: var(--surface-2);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  color: var(--text);
+  font-size: 16px;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.choice:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.choice--selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.choice--correct {
+  border-color: var(--correct);
+  background: var(--correct-soft);
+}
+
+.choice--wrong {
+  border-color: var(--wrong);
+  background: var(--wrong-soft);
+}
+
+.choice:disabled {
+  cursor: default;
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 13px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: opacity 0.12s, transform 0.05s;
+}
+
+.btn--primary {
+  background: var(--accent);
+  color: #1a1206;
+}
+
+.btn--primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn--primary:active {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+.feedback--correct {
+  background: var(--correct-soft);
+  border: 1px solid var(--correct);
+}
+
+.feedback--wrong {
+  background: var(--wrong-soft);
+  border: 1px solid var(--wrong);
+}
+
+.feedback__mark {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.feedback--correct .feedback__mark {
+  background: var(--correct);
+  color: #06150c;
+}
+
+.feedback--wrong .feedback__mark {
+  background: var(--wrong);
+  color: #2a0c0c;
+}
+
+.feedback__text {
+  flex: 1;
+}
+
+.card--done {
+  text-align: center;
+}
+
+.done__title {
+  font-size: 28px;
+  margin: 0 0 8px;
+}
+
+/* ── 코딩 어시스턴트 사이드바 ────────────────────────── */
+
+/* 셸은 레이아웃에 영향 주지 않는다 — #app 의 760px 중앙정렬을 그대로 보존하고,
+   패널/FAB 는 position:fixed 로 화면에 오버레이된다. */
+.app-shell {
+  display: contents;
+}
+
+/* 접힘 상태: 우하단 플로팅 버튼 */
+.chat-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--accent);
+  color: #1a1206;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  z-index: 50;
+  transition: transform 0.08s ease;
+}
+
+.chat-fab:hover {
+  transform: translateY(-2px);
+}
+
+.chat-fab:active {
+  transform: translateY(0);
+}
+
+/* 펼침 상태: 우측 고정 패널 */
+.chat-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 92vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  animation: slide-in 0.18s ease;
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.chat-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.chat-panel__title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.chat-panel__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.chat-panel__icon-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-family: var(--sans);
+}
+
+.chat-panel__icon-btn:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.chat-panel__log {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-hint {
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+  margin: auto 0;
+  padding: 24px 12px;
+}
+
+.chat-bubble {
+  max-width: 88%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14.5px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.chat-bubble--user {
+  align-self: flex-end;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+}
+
+.chat-bubble--assistant {
+  align-self: flex-start;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.chat-bubble--system {
+  align-self: center;
+  background: var(--wrong-soft);
+  border: 1px solid var(--wrong);
+  font-size: 13.5px;
+  text-align: center;
+}
+
+.chat-bubble--typing {
+  color: var(--muted);
+  letter-spacing: 3px;
+}
+
+.chat-composer {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  flex: 0 0 auto;
+}
+
+.chat-composer__input {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14.5px;
+  min-width: 0;
+}
+
+.chat-composer__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.chat-composer__input:disabled {
+  opacity: 0.5;
+}
+
+.chat-composer__send {
+  background: var(--accent);
+  color: #1a1206;
+  border: none;
+  border-radius: 10px;
+  padding: 0 18px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--sans);
+  flex: 0 0 auto;
+}
+
+.chat-composer__send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

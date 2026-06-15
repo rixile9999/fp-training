@@ -1,0 +1,28 @@
+# 퍼즐 패밀리 — fpdojo/content/schema.PuzzleFamily 와 필드 1:1
+# (PLAN §3.3 예시 3, §4.1 P1 predict, §5.3 디렉토리 계약).
+# id 는 SRS 카드 키이며 불변·재사용 금지 (PLAN §5.3 ID 라이프사이클).
+
+id = "fold-arg-order-predict-01"
+puzzle_type = "predict"            # P1
+grading = "choice"                 # P1은 choice | exact_output (PLAN §4.1)
+primary_theme = "tricky:fold-arg-order"
+themes = ["tricky:fold-arg-order", "tricky:accumulator-reverse"]
+srs_label = "fold-direction"       # 대시보드 그룹핑 라벨 (카드 키 아님 — PLAN §4.4)
+seed_tier = 4                      # 티어 4 -> 시드 1400, RD 350 (U8/L3 — PLAN §4.2)
+timeout_ms = 3000                  # 러너 watchdog 기본값 (PLAN §5.2)
+srs_eligible = true                # fold-arg-order는 핵심 4대 — SRS 기본 등록 (PLAN §3.4)
+rush_eligible = true               # P1 선택지형은 Rush 풀 (PLAN §4.3 타임드 적합성)
+streak_eligible = true
+mobile_friendly = true             # 무컴파일 타입 (PLAN §5.4)
+compiler_version = "1.17.0"        # 골든이 고정된 핀 버전 (PLAN §5.3 ④)
+
+# ── 변형 (Variant) ────────────────────────────────────────────────────────
+# 본문은 variants/<id>/ 의 파일에: prompt.md(=prompt_md), answer.txt(실행 출력
+# 스냅샷 — CI 골든 ②가 실제 실행으로 고정). 정답 인덱스는 빌드가 answer.txt 와
+# choices 의 유일 매칭으로 도출한다(매칭 0개/2개 이상 = 빌드 실패).
+# 변형별 feedback 은 패밀리 공용 feedback.ko.toml 을 상속한다.
+# TODO: 정식 패밀리는 변형 3~5개 (회전 출제로 암기 방지 — PLAN §4.4). 시연용 v1만.
+
+[[variants]]
+id = "v1"
+choices = ["[1, 2, 3]", "[3, 2, 1]", "[3]", "컴파일 에러"]

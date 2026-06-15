@@ -1,0 +1,13 @@
+# 마이크로 연습 — fpdojo/content/schema.Step 과 필드 1:1 (PLAN §3.2, §4.1).
+# 레슨 연습은 P1~P5만. 출처: curriculum.md U1-② 연습 1 (검증된 예제).
+# Step.starter 는 같은 디렉토리의 starter.gleam 내용으로 빌드가 채우고,
+# Step.feedback 은 feedback.ko.toml 의 [entries] 로 채운다.
+
+id = "s01"
+puzzle_type = "predict"   # types.PuzzleType P1 — 출력/값 예측
+grading = "choice"        # types.Grading — 선택지 인덱스 비교 (무컴파일)
+prompt_md = "다음 코드를 실행하면 두 줄이 출력됩니다. 무엇이 출력될까요? (위 줄 / 아래 줄)"
+choices = ["`11` / `11`", "`11` / `1`", "컴파일 에러", "`1` / `1`"]
+answer = "1"              # 0-기반 정답 인덱스 — CI 골든이 실제 실행으로 검증 (PLAN §5.3 ②)
+tags = ["tricky:shadowing", "concept:basics"]
+# test_code 없음 (Choice 채점은 컴파일/실행 불필요 — engine/grading 동기 판정)

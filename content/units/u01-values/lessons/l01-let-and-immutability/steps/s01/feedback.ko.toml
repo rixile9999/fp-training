@@ -1,0 +1,8 @@
+# Step.feedback (schema.FeedbackMap) — 오답 패턴 키 -> 사전 저작 진단 문장.
+# distractor 키는 "choice:<0-기반 인덱스>" 형식 (interfaces.md content/schema).
+# 문장 출처: curriculum.md U1-② 연습 1의 오답 피드백 (검증된 저작물).
+
+[entries]
+"choice:0" = "shadowing은 mutation이 아닙니다. `f`는 첫 번째 `x`(= 1)를 캡처했고, 세 번째 줄의 `let x`는 **새로운** 바인딩을 만들 뿐 `f`가 본 값을 바꾸지 못합니다."
+"choice:2" = "같은 이름의 재-`let`은 Gleam에서 합법입니다(shadowing). 금지된 것은 `x = x + 10`처럼 `let` 없는 재대입입니다."
+"choice:3" = "세 번째 줄 `let x = x + 10`은 11을 가리키는 새 바인딩을 만듭니다 — 이후 코드의 `x`는 11입니다. 옛 값 1을 보는 것은 그 전에 캡처한 `f`뿐입니다."

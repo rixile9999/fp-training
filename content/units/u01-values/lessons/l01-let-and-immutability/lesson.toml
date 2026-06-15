@@ -1,0 +1,24 @@
+# 레슨 메타 — fpdojo/content/schema.Lesson 과 필드 1:1 (PLAN §3.2, §5.3).
+# 본문은 prose.ko.md(세그먼트)와 steps/<id>/(마이크로 연습)에 있고,
+# blocks 배열이 둘을 교차 직조하는 순서를 정의한다 — build-content가
+# List(LessonBlock)으로 조립한다. 신규 개념은 레슨당 정확히 1개 (PLAN §3.2).
+
+id = "l01-let-and-immutability"
+unit_id = "u01-values"
+title = "값과 let — 한 번 정하면 끝"
+
+# 레슨 완료 시 "학습됨"으로 전환되는 태그 -> 트레이닝 풀 편입 (PLAN §2).
+emits_tags = ["concept:basics", "tricky:shadowing"]
+
+# 완료 시 SRS에 등록되는 핵심 패밀리 id 2~4개 — 카드 단위 = family_id (PLAN §4.4).
+# TODO: 두 패밀리 모두 미저작 — content/puzzles/ 에 저작 후 골든 통과 필요.
+srs_items = ["shadowing-predict-01", "no-reassign-fix-01"]
+
+# 블록 직조 순서: kind = "prose"(segment_id는 prose.ko.md의 anchor) |
+# "exercise"(step_id는 steps/ 하위 디렉토리명).
+blocks = [
+  { kind = "prose", segment_id = "seg-01-let" },
+  { kind = "prose", segment_id = "seg-02-shadowing" },
+  { kind = "exercise", step_id = "s01" },
+]
+# TODO: 정식 레슨은 세그먼트 3~5개 x 연습 5~10개 (PLAN §3.2) — 시연용 축약본.

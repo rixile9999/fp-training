@@ -1,0 +1,80 @@
+{
+  "content_version": "dev",
+  "compiler_version": "1.17.0",
+  "units": [
+    {
+      "id": "u01-values",
+      "title": "값, 불변성, 표현식",
+      "order": 1,
+      "level": 1,
+      "concepts": [
+        "concept:basics",
+        "concept:ints",
+        "concept:floats"
+      ],
+      "prerequisites": [],
+      "lesson_ids": [
+        "l01-let-and-immutability"
+      ]
+    }
+  ],
+  "tags": {
+    "concepts": [
+      "basics",
+      "bools",
+      "ints",
+      "floats",
+      "modules",
+      "case-expressions",
+      "tuples",
+      "lists",
+      "strings",
+      "custom-types",
+      "labelled-fields",
+      "recursion",
+      "tail-call-optimisation",
+      "anonymous-functions",
+      "pipe-operator",
+      "generics",
+      "results",
+      "dicts",
+      "type-aliases",
+      "orders",
+      "constants",
+      "labelled-arguments",
+      "sets",
+      "options",
+      "let-assertions",
+      "bit-arrays",
+      "iterators",
+      "nil",
+      "io",
+      "opaque-types",
+      "queues",
+      "phantom-types",
+      "regular-expressions",
+      "external-functions",
+      "external-types",
+      "use-expressions"
+    ],
+    "tricky": [
+      "int-float-operators",
+      "shadowing",
+      "no-early-return",
+      "branch-order",
+      "exhaustiveness",
+      "record-update-copy",
+      "empty-list-base-case",
+      "tail-call-accumulator",
+      "accumulator-reverse",
+      "capture-vs-currying",
+      "fold-arg-order",
+      "tool-choice",
+      "option-vs-result",
+      "string-vs-int-concat",
+      "use-desugaring",
+      "crash-vs-result"
+    ],
+    "aliases": {}
+  }
+}

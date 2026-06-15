@@ -1,0 +1,82 @@
+# 단일 태그 레지스트리 — 태그 어휘의 유일 기준 (PLAN §3.4, §5.3).
+#
+# fpdojo/content/registry.TagRegistry 와 1:1 대응:
+#   [concept].slugs -> concepts / [tricky].slugs -> tricky / [alias] -> aliases
+#
+# 미등록 태그를 쓰는 콘텐츠는 tools/build-content.mjs 가 빌드 실패 처리한다.
+# 슬러그는 여기서만 추가/은퇴하며, 콘텐츠 파일은 "concept:<slug>" /
+# "tricky:<slug>" 직렬 표기(core/types.tag_key)로 참조한다.
+
+[concept]
+# Exercism Gleam 트랙 concept 슬러그 원문 그대로 (PLAN §5.3).
+# 출처: docs/research/existing-platforms.md (config.json 기준 36개, 2026-06 시점).
+# TODO: 라이브 Exercism Gleam 트랙 config.json(main 브랜치)과 대조 검증할 것 —
+#       개수·슬러그는 시점 데이터라 드리프트 가능 (existing-platforms.md 명시).
+slugs = [
+  "basics",
+  "bools",
+  "ints",
+  "floats",
+  "modules",
+  "case-expressions",
+  "tuples",
+  "lists",
+  "strings",
+  "custom-types",
+  "labelled-fields",
+  "recursion",
+  "tail-call-optimisation",
+  "anonymous-functions",
+  "pipe-operator",
+  "generics",
+  "results",
+  "dicts",
+  "type-aliases",
+  "orders",
+  "constants",
+  "labelled-arguments",
+  "sets",
+  "options",
+  "let-assertions",
+  "bit-arrays",
+  "iterators",
+  "nil",
+  "io",
+  "opaque-types",
+  "queues",
+  "phantom-types",
+  "regular-expressions",
+  "external-functions",
+  "external-types",
+  "use-expressions",
+]
+
+[tricky]
+# PLAN §3.4 표의 canonical 트리키 파트 태그 16개 — 구 문서 명칭은 사용 금지
+# (예: curriculum.md의 `int-float-ops`, `fold-direction` 등은 빌드가 거부).
+slugs = [
+  "int-float-operators",
+  "shadowing",
+  "no-early-return",
+  "branch-order",
+  "exhaustiveness",
+  "record-update-copy",
+  "empty-list-base-case",
+  "tail-call-accumulator",
+  "accumulator-reverse",
+  "capture-vs-currying",
+  "fold-arg-order",
+  "tool-choice",
+  "option-vs-result",
+  "string-vs-int-concat",
+  "use-desugaring",
+  "crash-vs-result",
+]
+
+[alias]
+# 구 문서 명칭 -> canonical 슬러그 매핑 (PLAN §5.3).
+# 목적: 구 설계 문서(curriculum.md, training-system.md)의 태그 표기가 콘텐츠에
+# 흘러들어왔을 때, 빌드가 "경고 후 거부"하면서 올바른 canonical 명칭을 안내하기
+# 위한 사전이다. alias는 통과시키는 별칭이 아니라 거부 + 안내용이다.
+# 현재 비어 있음 — 거부된 구 표기가 발견될 때마다 여기에 추가한다.
+# (예시 형식: "int-float-ops" = "int-float-operators")

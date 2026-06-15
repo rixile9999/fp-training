@@ -1,0 +1,16 @@
+{
+  "name": "fpdojo-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "fpdojo 코딩 어시스턴트 사이드바 백엔드 — DashScope(Qwen) 프록시 + 세션 메모리",
+  "scripts": {
+    "dev": "node --watch --env-file-if-exists=.env src/server.mjs",
+    "start": "node --env-file-if-exists=.env src/server.mjs"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.4",
+    "hono": "^4.12.25",
+    "openai": "^6.42.0"
+  }
+}

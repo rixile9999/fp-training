@@ -1,0 +1,8 @@
+# 대용량 컴파일러 아티팩트 — 커밋 금지, fetch-compiler.sh 로 재취득(+sha256)
+bin/
+compiler/*.tar.gz
+compiler/*.tar.gz.sha256
+compiler/extracted/
+# 재사용 오라클 프로젝트의 빌드 산출물
+oracle-proj/build/
+oracle-proj/manifest.toml

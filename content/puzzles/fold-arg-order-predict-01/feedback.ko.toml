@@ -1,0 +1,8 @@
+# Variant.feedback (schema.FeedbackMap) — 오답 패턴 키 -> 사전 저작 진단 문장.
+# distractor 키는 "choice:<0-기반 인덱스>" 형식 (interfaces.md content/schema).
+# choice:0 문장은 PLAN §3.3 예시 3의 저작 원문.
+
+[entries]
+"choice:0" = "fold는 왼쪽부터 — 1이 먼저 acc에 박히고 그 위에 2, 3이 쌓입니다. 순서 보존이 필요하면 `list.fold_right` 또는 fold 후 `list.reverse`."
+"choice:2" = "`[x, ..acc]`는 acc를 버리지 않습니다 — 지금까지 쌓인 누산 리스트 **전체의 앞에** x를 붙입니다. 마지막 원소만 남는 게 아닙니다."
+"choice:3" = "`fn(acc, x)` 두 인자 콜백은 `list.fold`의 시그니처 그대로입니다 — 타입 에러가 아닙니다. 인자 순서가 헷갈렸다면 그게 바로 이 퍼즐의 함정(`fold-arg-order`)입니다."

@@ -1,0 +1,73 @@
+# 유닛 체크포인트 — fpdojo/content/schema.Checkpoint 와 필드 1:1 (PLAN §3.2).
+# 계약: 유닛 태그 혼합 10문항, pass_threshold(=8) 이상 통과. 실패 문항은
+# backlink("lesson#segment")로 해당 설명 세그먼트에 딥링크 역연결된다.
+#
+# TODO: 정식 체크포인트는 문항 10개 — 현재는 스키마 시연용 2문항만 저작됨
+#       (이 상태로는 pass_threshold=8 충족 불가; 저작 완료 시 10개로 확장).
+
+unit_id = "u01-values"
+pass_threshold = 8
+
+# ── 문항 1: shadowing predict (CheckpointItem = step + backlink) ──────────
+[[items]]
+backlink = "l01-let-and-immutability#seg-02-shadowing"
+
+[items.step]
+id = "cp-u01-q01"
+puzzle_type = "predict"   # types.PuzzleType P1
+grading = "choice"        # types.Grading — 무컴파일 채점 (test_code 없음)
+prompt_md = "다음 코드를 실행하면 무엇이 출력될까요?"
+starter = '''
+import gleam/io
+
+pub fn main() -> Nil {
+  let name = "lin"
+  let name = name <> "!"
+  io.println(name)
+}
+'''
+choices = ["`lin`", "`lin!`", "컴파일 에러"]
+answer = "1"              # 0-기반 정답 인덱스 (grading=choice)
+tags = ["tricky:shadowing", "concept:basics"]
+
+[items.step.feedback.entries]
+# 오답 패턴 키 — distractor는 "choice:<0-기반 인덱스>" (schema.FeedbackMap)
+"choice:0" = "두 번째 `let name`은 새 바인딩으로 이전 이름을 가립니다(shadowing) — 이후의 `name`은 `\"lin!\"`입니다."
+"choice:2" = "같은 이름의 재-`let`은 Gleam에서 합법입니다(shadowing). 금지된 것은 `let` 없는 재대입입니다."
+
+# ── 문항 2: 재대입 fix_error (PLAN curriculum U1-② 연습 2) ──────────────
+[[items]]
+backlink = "l01-let-and-immutability#seg-02-shadowing"
+
+[items.step]
+id = "cp-u01-q02"
+puzzle_type = "fix_error" # types.PuzzleType P4 — starter는 컴파일 실패가 필수
+grading = "tests"
+prompt_md = "아래 코드는 컴파일되지 않습니다. 에러 메시지를 읽고 표시된 줄을 고치세요."
+starter = '''
+pub fn add_bonus(score: Int) -> Int {
+  let total = score
+  total = total + 100   // <- 이 줄을 고치세요
+  total
+}
+'''
+choices = []
+# answer 필드 없음 — tests 채점은 answer 미사용 (schema.Step.answer: Option, None)
+# 히든 테스트: 하니스(harness.gleam)는 플랫폼이 자동 주입 (PLAN §5.2)
+test_code = '''
+import harness
+import solution
+
+pub fn main() {
+  harness.suite([
+    harness.check("add_bonus는 100을 더한다", fn() { assert solution.add_bonus(5) == 105 }),
+    harness.check("0점에도 동작한다", fn() { assert solution.add_bonus(0) == 100 }),
+  ])
+}
+'''
+tags = ["tricky:shadowing", "concept:basics"]
+
+[items.step.feedback.entries]
+# 비-choice 채점의 오답 패턴 키는 저작 자유 형식 — engine/grading의
+# feedback_key 가 이 키로 조회한다.
+"reassign" = "Gleam에는 재대입 연산자가 없습니다. 새 `let`으로 이전 이름을 가리세요: `let total = total + 100`."

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>fpdojo — Gleam FP 도장</title>
+
+    <!-- TODO(M1, PLAN §5.2 샌드박싱): CSP 헤더/메타 — connect-src 'self'
+         (러너 워커의 외부 fetch 차단; 자산은 전부 self 서빙). -->
+    <!-- TODO(M1): priv/static/fpdojo.css — lustre_dev_tools 빌드 산출물 링크. -->
+  </head>
+  <body>
+    <!-- Lustre SPA 마운트 포인트 (fpdojo/ui/app.main → lustre.start(_, "#app", _)) -->
+    <div id="app"></div>
+
+    <!-- 앱 엔트리: `gleam run -m lustre/dev build`가 priv/static/fpdojo.mjs로 번들 -->
+    <script type="module" src="/priv/static/fpdojo.mjs"></script>
+
+    <!-- TODO(M1, PLAN §5.2 듀얼 워커 — 메인 스레드에서 직접 로드하지 않고
+         engine/compiler_ffi.mjs · runner_ffi.mjs가 스폰한다. 자산 경로만 예약):
+         - /priv/static/workers/compiler.worker.js   (장수명 컴파일 워커.
+             gleam-v1.17.0-browser.tar.gz WASM lazy-load — 첫 인터랙티브 연습
+             진입 시, ?v= 캐시버스터)
+         - /priv/static/workers/runner.worker.js     (일회용 러너, watchdog)
+         - /priv/static/compiler/                    (WASM tarball 자체 미러,
+             Apache-2.0 LICENSE+NOTICE 동봉 — PLAN §5.4 라이선스)
+         - /priv/static/precompiled/                 (gleam_stdlib 프리컴파일 .mjs
+             — 러너의 import 재작성 대상)
+         - /priv/static/harness/                     (harness.gleam + harness_ffi.mjs
+             자동 주입용)
+         - /priv/static/content/                     (단위별 JSON 청크,
+             tools/build-content.mjs 산출물 — content/loader가 fetch) -->
+
+    <!-- TODO(M1→M2, PLAN §5.4 오프라인/PWA): Service Worker 등록 —
+         앱 셸 + 컴파일러 + 해제된 유닛 콘텐츠 청크 캐시, manifest.webmanifest,
+         로컬 알림 opt-in은 M2. -->
+  </body>
+</html>

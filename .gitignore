@@ -1,0 +1,34 @@
+# ── 의존성 ──────────────────────────────────────────────
+node_modules/
+
+# ── 비밀키 / 환경설정 (server/.env.example 만 커밋) ─────────
+.env
+.env.local
+*.env
+!*.env.example
+
+# ── Gleam / Lustre 빌드 산출물 (app/) ──────────────────────
+build/
+/app/dist/
+/app/.lustre/
+*.beam
+*.ez
+erl_crash.dump
+
+# ── 골든 오라클: 대용량 컴파일러 아티팩트 (fetch-compiler.sh 로 재취득) ──
+/tools/golden/bin/
+/tools/golden/compiler/*.tar.gz
+/tools/golden/compiler/*.tar.gz.sha256
+/tools/golden/compiler/extracted/
+/tools/golden/oracle-proj/build/
+/tools/golden/oracle-proj/manifest.toml
+
+# ── 개발/E2E 스크린샷 (루트), Playwright MCP 산출물 ─────────
+/*.png
+.playwright-mcp/
+
+# ── OS / 에디터 ─────────────────────────────────────────────
+.DS_Store
+*.swp
+.idea/
+.vscode/

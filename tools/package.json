@@ -1,0 +1,16 @@
+{
+  "name": "fpdojo-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "fpdojo 콘텐츠 빌드/골든 검증 도구 (build-content, golden/verify)",
+  "scripts": {
+    "build-content": "node build-content.mjs --content ../content --out ../app/priv/static/content",
+    "verify": "node golden/verify.mjs --content ../content",
+    "golden": "node build-content.mjs --content ../content --out ../app/priv/static/content && node golden/verify.mjs --content ../content",
+    "fetch-compiler": "bash golden/fetch-compiler.sh"
+  },
+  "dependencies": {
+    "smol-toml": "^1.3.1"
+  }
+}

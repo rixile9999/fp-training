@@ -1,0 +1,39 @@
+name = "fpdojo"
+version = "0.1.0"
+target = "javascript"
+
+# Fill out these fields if you intend to generate HTML documentation or publish
+# your project to the Hex package manager.
+#
+# description = ""
+# licences = ["Apache-2.0"]
+# repository = { type = "github", user = "", repo = "" }
+# links = [{ title = "Website", href = "" }]
+#
+# For a full reference of all the available options, you can have a look at
+# https://gleam.run/writing-gleam/gleam-toml/.
+
+# Lustre dev tools 설정: 자동 생성 HTML에 스타일시트 주입.
+# 개발 서버는 assets/ 를 "/" 로 서빙하므로 "/styles.css" 로 참조한다.
+[tools.lustre.html]
+stylesheets = [{ href = "/styles.css" }]
+
+# 개발 서버 프록시 — 브라우저의 same-origin /api/* 를 에이전트 백엔드(:8787)로
+# 포워딩한다. 브라우저는 DashScope 를 직접 접촉하지 않으므로 connect-src 'self'
+# 의도가 유지된다.
+# 주의: lustre_dev_tools 는 설정을 [tools.lustre] 하위에서 읽으므로(proxy 경로 =
+# tools.lustre.dev.proxy) 반드시 [tools.lustre.dev] 아래에 둔다. 또 proxy.gleam 은
+# 인라인 테이블만 인식하고, to 에 /api 를 포함해야 백엔드 /api/* 라우트와 경로가 맞는다.
+[tools.lustre.dev]
+proxy = { from = "/api", to = "http://localhost:8787/api" }
+
+[dependencies]
+gleam_stdlib = ">= 1.0.0 and < 2.0.0"
+lustre = ">= 5.7.0 and < 6.0.0"
+gleam_json = ">= 3.1.0 and < 4.0.0"
+gleam_javascript = ">= 1.0.0 and < 2.0.0"
+rsvp = ">= 2.0.0 and < 3.0.0"
+
+[dev_dependencies]
+gleeunit = ">= 1.0.0 and < 2.0.0"
+lustre_dev_tools = ">= 2.3.6 and < 3.0.0"
