@@ -4,6 +4,7 @@
 //// 받아 자기 msg 를 모른 채 이벤트만 위임한다(역방향 의존 금지, msg 제네릭).
 //// 타입은 fpdojo/ui/chat 에서만 가져온다.
 
+import fpdojo/core/locale.{type Locale}
 import fpdojo/ui/chat.{type ChatMsg, type ChatState, ChatMsg}
 import gleam/list
 import lustre/attribute
@@ -11,10 +12,12 @@ import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
 
-/// `state`: 채팅 상태. 나머지는 ui/app 이 주입하는 메시지 생성자/값.
+/// `locale`: 표시 언어. `state`: 채팅 상태. 나머지는 ui/app 이 주입하는 메시지
+/// 생성자/값.
 /// - `on_input`: 입력 변경(값 운반)  - `on_submit`: 전송  - `on_toggle`: 열기/닫기
 /// - `on_reset`: 대화 비우기
 pub fn view(
+  locale: Locale,
   state: ChatState,
   on_input: fn(String) -> msg,
   on_submit: msg,
@@ -22,17 +25,17 @@ pub fn view(
   on_reset: msg,
 ) -> Element(msg) {
   case state.open {
-    False -> fab(on_toggle)
-    True -> panel(state, on_input, on_submit, on_toggle, on_reset)
+    False -> fab(locale, on_toggle)
+    True -> panel(locale, state, on_input, on_submit, on_toggle, on_reset)
   }
 }
 
 /// 접힌 상태: 우하단 플로팅 버튼.
-fn fab(on_toggle: msg) -> Element(msg) {
+fn fab(locale: Locale, on_toggle: msg) -> Element(msg) {
   html.button(
     [
       attribute.class("chat-fab"),
-      attribute.title("코딩 도우미 열기"),
+      attribute.title(locale.t(locale, "코딩 도우미 열기", "Open coding assistant")),
       event.on_click(on_toggle),
     ],
     [html.text("💬")],
@@ -41,6 +44,7 @@ fn fab(on_toggle: msg) -> Element(msg) {
 
 /// 펼친 상태: 헤더 + 로그 + 입력.
 fn panel(
+  locale: Locale,
   state: ChatState,
   on_input: fn(String) -> msg,
   on_submit: msg,
@@ -48,18 +52,20 @@ fn panel(
   on_reset: msg,
 ) -> Element(msg) {
   html.aside([attribute.class("chat-panel")], [
-    head(on_toggle, on_reset),
-    log(state),
-    composer(state, on_input, on_submit),
+    head(locale, on_toggle, on_reset),
+    log(locale, state),
+    composer(locale, state, on_input, on_submit),
   ])
 }
 
-fn head(on_toggle: msg, on_reset: msg) -> Element(msg) {
+fn head(locale: Locale, on_toggle: msg, on_reset: msg) -> Element(msg) {
   html.header([attribute.class("chat-panel__head")], [
-    html.span([attribute.class("chat-panel__title")], [html.text("코딩 도우미")]),
+    html.span([attribute.class("chat-panel__title")], [
+      html.text(locale.t(locale, "코딩 도우미", "Coding assistant")),
+    ]),
     html.div([attribute.class("chat-panel__actions")], [
-      icon_button("대화 비우기", "🗑", on_reset),
-      icon_button("닫기", "✕", on_toggle),
+      icon_button(locale.t(locale, "대화 비우기", "Clear chat"), "🗑", on_reset),
+      icon_button(locale.t(locale, "닫기", "Close"), "✕", on_toggle),
     ]),
   ])
 }
@@ -76,9 +82,9 @@ fn icon_button(label: String, glyph: String, msg: msg) -> Element(msg) {
   )
 }
 
-fn log(state: ChatState) -> Element(msg) {
+fn log(locale: Locale, state: ChatState) -> Element(msg) {
   let bubbles = case state.messages {
-    [] -> [hint()]
+    [] -> [hint(locale)]
     msgs -> list.map(msgs, bubble)
   }
   let items = case state.streaming {
@@ -88,9 +94,13 @@ fn log(state: ChatState) -> Element(msg) {
   html.div([attribute.class("chat-panel__log")], items)
 }
 
-fn hint() -> Element(msg) {
+fn hint(locale: Locale) -> Element(msg) {
   html.div([attribute.class("chat-hint")], [
-    html.text("Gleam·함수형 프로그래밍에 대해 무엇이든 물어보세요."),
+    html.text(locale.t(
+      locale,
+      "Gleam·함수형 프로그래밍에 대해 무엇이든 물어보세요.",
+      "Ask anything about Gleam or functional programming.",
+    )),
   ])
 }
 
@@ -102,12 +112,16 @@ fn bubble(m: ChatMsg) -> Element(msg) {
 }
 
 fn typing() -> Element(msg) {
-  html.div([attribute.class("chat-bubble chat-bubble--assistant chat-bubble--typing")], [
-    html.text("…"),
-  ])
+  html.div(
+    [attribute.class("chat-bubble chat-bubble--assistant chat-bubble--typing")],
+    [
+      html.text("…"),
+    ],
+  )
 }
 
 fn composer(
+  locale: Locale,
   state: ChatState,
   on_input: fn(String) -> msg,
   on_submit: msg,
@@ -121,7 +135,11 @@ fn composer(
       html.input([
         attribute.class("chat-composer__input"),
         attribute.value(state.draft),
-        attribute.placeholder("코딩 질문을 입력하세요…"),
+        attribute.placeholder(locale.t(
+          locale,
+          "코딩 질문을 입력하세요…",
+          "Type a coding question…",
+        )),
         attribute.disabled(state.streaming),
         attribute.autocomplete("off"),
         event.on_input(on_input),
@@ -132,10 +150,12 @@ fn composer(
           attribute.type_("submit"),
           attribute.disabled(state.streaming),
         ],
-        [html.text(case state.streaming {
-          True -> "…"
-          False -> "보내기"
-        })],
+        [
+          html.text(case state.streaming {
+            True -> "…"
+            False -> locale.t(locale, "보내기", "Send")
+          }),
+        ],
       ),
     ],
   )

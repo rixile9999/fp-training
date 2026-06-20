@@ -10,6 +10,7 @@
 //// (역방향 의존 금지, msg 제네릭).
 
 import fpdojo/content/schema
+import fpdojo/core/locale.{type Locale}
 import gleam/int
 import gleam/list
 import lustre/attribute
@@ -17,9 +18,10 @@ import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
 
-/// `practical`/`theory`: 두 트랙의 유닛. `completed`: 완료한 레슨 id.
-/// `on_start`: 레슨 시작 메시지 생성자.
+/// `locale`: 표시 언어. `practical`/`theory`: 두 트랙의 유닛. `completed`: 완료한
+/// 레슨 id. `on_start`: 레슨 시작 메시지 생성자.
 pub fn view(
+  locale: Locale,
   practical: List(schema.Unit),
   theory: List(schema.Unit),
   completed: List(String),
@@ -29,13 +31,21 @@ pub fn view(
     html.header([attribute.class("hero")], [
       html.h1([attribute.class("hero__title")], [html.text("fpdojo")]),
       html.p([attribute.class("hero__subtitle")], [
-        html.text("Gleam으로 배우는 함수형 프로그래밍 — 한 번에 한 개념씩."),
+        html.text(locale.t(
+          locale,
+          "Gleam으로 배우는 함수형 프로그래밍 — 한 번에 한 개념씩.",
+          "Learn functional programming with Gleam — one concept at a time.",
+        )),
       ]),
-      progress_summary(list.append(practical, theory), completed),
+      progress_summary(locale, list.append(practical, theory), completed),
     ]),
     track(
-      "실용 트랙",
-      "Gleam으로 무엇을, 어떻게 — 손이 먼저 익는 길.",
+      locale.t(locale, "실용 트랙", "Practical Track"),
+      locale.t(
+        locale,
+        "Gleam으로 무엇을, 어떻게 — 손이 먼저 익는 길.",
+        "What and how, in Gleam — the path your hands learn first.",
+      ),
       "track--practical",
       [units_list(practical, completed, on_start)],
     ),
@@ -43,16 +53,21 @@ pub fn view(
       [] -> element.none()
       _ ->
         track(
-          "FP 이론 트랙",
-          "왜 그렇게 쓰는가, 그 패턴의 이름은 무엇인가 — 실용 트랙과 병렬로 공부한다.",
+          locale.t(locale, "FP 이론 트랙", "FP Theory Track"),
+          locale.t(
+            locale,
+            "왜 그렇게 쓰는가, 그 패턴의 이름은 무엇인가 — 실용 트랙과 병렬로 공부한다.",
+            "Why it works this way, and what the pattern is called — studied in parallel with the practical track.",
+          ),
           "track--theory",
-          theory_levels(theory, completed, on_start),
+          theory_levels(locale, theory, completed, on_start),
         )
     },
   ])
 }
 
 fn progress_summary(
+  locale: Locale,
   units: List(schema.Unit),
   completed: List(String),
 ) -> Element(msg) {
@@ -61,9 +76,12 @@ fn progress_summary(
     |> list.flat_map(fn(u) { u.lessons })
     |> list.length
   let done = list.length(completed)
-  html.p([attribute.class("hero__progress")], [
-    html.text("완료한 레슨 " <> int.to_string(done) <> " / " <> int.to_string(total)),
-  ])
+  let label =
+    locale.t(locale, "완료한 레슨 ", "Lessons completed ")
+    <> int.to_string(done)
+    <> " / "
+    <> int.to_string(total)
+  html.p([attribute.class("hero__progress")], [html.text(label)])
 }
 
 /// 트랙 1개(실용/이론)를 헤더 + 내용으로 감싼다.
@@ -95,15 +113,26 @@ fn units_list(
 
 /// 이론 유닛을 이론 레벨(TL1~TL4 = level 5~8)별로 묶어 렌더한다.
 fn theory_levels(
+  locale: Locale,
   units: List(schema.Unit),
   completed: List(String),
   on_start: fn(String) -> msg,
 ) -> List(Element(msg)) {
   [
-    #(5, "TL1 · 함수와 계산의 본질"),
-    #(6, "TL2 · 타입의 대수"),
-    #(7, "TL3 · 구조 위의 추상화"),
-    #(8, "TL4 · 토대와 한계"),
+    #(
+      5,
+      locale.t(
+        locale,
+        "TL1 · 함수와 계산의 본질",
+        "TL1 · The Nature of Functions and Computation",
+      ),
+    ),
+    #(6, locale.t(locale, "TL2 · 타입의 대수", "TL2 · The Algebra of Types")),
+    #(
+      7,
+      locale.t(locale, "TL3 · 구조 위의 추상화", "TL3 · Abstraction over Structure"),
+    ),
+    #(8, locale.t(locale, "TL4 · 토대와 한계", "TL4 · Foundations and Limits")),
   ]
   |> list.filter_map(fn(pair) {
     let #(level, label) = pair

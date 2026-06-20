@@ -6,6 +6,7 @@
 //// 않고 메시지 생성자를 인자로 받는다(역방향 의존 금지, msg 제네릭).
 
 import fpdojo/content/schema
+import fpdojo/core/locale.{type Locale}
 import fpdojo/session/lesson.{type LessonSession}
 import fpdojo/ui/markdown
 import gleam/float
@@ -17,9 +18,11 @@ import lustre/element.{type Element}
 import lustre/element/html
 import lustre/event
 
-/// `title`: 레슨 제목. `session`: 순수 세션. `selected`/`result`: 화면 로컬 상태.
-/// 나머지는 메시지 생성자/값 — app이 자기 Msg를 주입한다.
+/// `locale`: 표시 언어. `title`: 레슨 제목. `session`: 순수 세션.
+/// `selected`/`result`: 화면 로컬 상태. 나머지는 메시지 생성자/값 — app이 자기
+/// Msg를 주입한다.
 pub fn view(
+  locale: Locale,
   title: String,
   session: LessonSession,
   selected: Option(Int),
@@ -30,9 +33,10 @@ pub fn view(
   on_home: msg,
 ) -> Element(msg) {
   html.div([attribute.class("page page--lesson")], [
-    lesson_header(title, session, on_home),
+    lesson_header(locale, title, session, on_home),
     html.div([attribute.class("lesson-body")], [
       body(
+        locale,
         session,
         selected,
         result,
@@ -46,6 +50,7 @@ pub fn view(
 }
 
 fn lesson_header(
+  locale: Locale,
   title: String,
   session: LessonSession,
   on_home: msg,
@@ -53,7 +58,7 @@ fn lesson_header(
   let pct = float.round(lesson.progress_ratio(session) *. 100.0)
   html.header([attribute.class("lesson-header")], [
     html.button([attribute.class("link-back"), event.on_click(on_home)], [
-      html.text("← 목록"),
+      html.text(locale.t(locale, "← 목록", "← List")),
     ]),
     html.span([attribute.class("lesson-header__title")], [html.text(title)]),
     html.div([attribute.class("progress")], [
@@ -69,6 +74,7 @@ fn lesson_header(
 }
 
 fn body(
+  locale: Locale,
   session: LessonSession,
   selected: Option(Int),
   result: Option(#(Bool, String)),
@@ -78,26 +84,32 @@ fn body(
   on_home: msg,
 ) -> Element(msg) {
   case lesson.status(session) {
-    lesson.AtProse -> prose_view(session, on_continue)
+    lesson.AtProse -> prose_view(locale, session, on_continue)
     lesson.AtExercise ->
-      exercise_view(session, selected, result, on_select, on_submit)
-    lesson.AtResult -> result_view(session, selected, result, on_continue)
-    lesson.AtEnd -> end_view(on_home)
+      exercise_view(locale, session, selected, result, on_select, on_submit)
+    lesson.AtResult ->
+      result_view(locale, session, selected, result, on_continue)
+    lesson.AtEnd -> end_view(locale, on_home)
   }
 }
 
-fn prose_view(session: LessonSession, on_continue: msg) -> Element(msg) {
+fn prose_view(
+  locale: Locale,
+  session: LessonSession,
+  on_continue: msg,
+) -> Element(msg) {
   case lesson.current_block(session) {
     Some(schema.Prose(_, md)) ->
       html.div([attribute.class("card card--prose")], [
         markdown.render(md),
-        primary_button("계속", on_continue),
+        primary_button(locale.t(locale, "계속", "Continue"), on_continue),
       ])
     _ -> element.none()
   }
 }
 
 fn exercise_view(
+  locale: Locale,
   session: LessonSession,
   selected: Option(Int),
   result: Option(#(Bool, String)),
@@ -107,26 +119,33 @@ fn exercise_view(
   case current_step(session) {
     Some(step) ->
       html.div([attribute.class("card card--exercise")], [
-        html.p([attribute.class("exercise__prompt")], markdown.inline(step.prompt_md)),
+        html.p(
+          [attribute.class("exercise__prompt")],
+          markdown.inline(step.prompt_md),
+        ),
         code_block(step.starter),
         choice_list(step.choices, selected, None, on_select),
         // 오답 후 재시도 중이면 피드백을 인라인으로 보여준다(무벌점 재시도, PLAN §3.2)
-        retry_feedback(result),
-        submit_button(selected, on_submit),
+        retry_feedback(locale, result),
+        submit_button(locale, selected, on_submit),
       ])
     None -> element.none()
   }
 }
 
 /// AtExercise 상태에서 직전 오답 피드백 표시 (정답이면 AtResult로 가므로 여긴 항상 오답).
-fn retry_feedback(result: Option(#(Bool, String))) -> Element(msg) {
+fn retry_feedback(
+  locale: Locale,
+  result: Option(#(Bool, String)),
+) -> Element(msg) {
   case result {
-    Some(#(False, message)) -> feedback_banner(False, message)
+    Some(#(False, message)) -> feedback_banner(locale, False, message)
     _ -> element.none()
   }
 }
 
 fn result_view(
+  locale: Locale,
   session: LessonSession,
   selected: Option(Int),
   result: Option(#(Bool, String)),
@@ -139,7 +158,10 @@ fn result_view(
         None -> #(False, "")
       }
       html.div([attribute.class("card card--exercise")], [
-        html.p([attribute.class("exercise__prompt")], markdown.inline(step.prompt_md)),
+        html.p(
+          [attribute.class("exercise__prompt")],
+          markdown.inline(step.prompt_md),
+        ),
         code_block(step.starter),
         choice_list(
           step.choices,
@@ -147,19 +169,27 @@ fn result_view(
           Some(#(correct, answer_index(step))),
           fn(_) { on_continue },
         ),
-        feedback_banner(correct, message),
-        primary_button("계속", on_continue),
+        feedback_banner(locale, correct, message),
+        primary_button(locale.t(locale, "계속", "Continue"), on_continue),
       ])
     }
     None -> element.none()
   }
 }
 
-fn end_view(on_home: msg) -> Element(msg) {
+fn end_view(locale: Locale, on_home: msg) -> Element(msg) {
   html.div([attribute.class("card card--done")], [
-    html.h2([attribute.class("done__title")], [html.text("레슨 완료! 🎉")]),
-    html.p([], [html.text("잘 해냈어요. 다음 레슨으로 이어가 보세요.")]),
-    primary_button("목록으로", on_home),
+    html.h2([attribute.class("done__title")], [
+      html.text(locale.t(locale, "레슨 완료! 🎉", "Lesson complete! 🎉")),
+    ]),
+    html.p([], [
+      html.text(locale.t(
+        locale,
+        "잘 해냈어요. 다음 레슨으로 이어가 보세요.",
+        "Well done. Move on to the next lesson.",
+      )),
+    ]),
+    primary_button(locale.t(locale, "목록으로", "Back to list"), on_home),
   ])
 }
 
@@ -209,14 +239,18 @@ fn choice_class(
   }
 }
 
-fn submit_button(selected: Option(Int), on_submit: msg) -> Element(msg) {
+fn submit_button(
+  locale: Locale,
+  selected: Option(Int),
+  on_submit: msg,
+) -> Element(msg) {
   html.button(
     [
       attribute.class("btn btn--primary"),
       attribute.disabled(selected == None),
       event.on_click(on_submit),
     ],
-    [html.text("제출")],
+    [html.text(locale.t(locale, "제출", "Submit"))],
   )
 }
 
@@ -226,14 +260,18 @@ fn primary_button(label: String, msg: msg) -> Element(msg) {
   ])
 }
 
-fn feedback_banner(correct: Bool, message: String) -> Element(msg) {
+fn feedback_banner(
+  locale: Locale,
+  correct: Bool,
+  message: String,
+) -> Element(msg) {
   let cls = case correct {
     True -> "feedback feedback--correct"
     False -> "feedback feedback--wrong"
   }
   let mark = case correct {
-    True -> "정답"
-    False -> "다시"
+    True -> locale.t(locale, "정답", "Correct")
+    False -> locale.t(locale, "다시", "Retry")
   }
   html.div([attribute.class(cls)], [
     html.span([attribute.class("feedback__mark")], [html.text(mark)]),

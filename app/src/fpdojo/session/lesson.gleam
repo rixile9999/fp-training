@@ -109,6 +109,17 @@ pub fn start(lesson: schema.Lesson, now_ms: Int) -> LessonSession {
   )
 }
 
+/// 표시 언어 전환 — 진행 상태(cursor·phase·streak 등)는 그대로 두고 임베드된
+/// 레슨만 번역본으로 갈아끼운다. 한/영 seed는 구조(블록 수·순서·id·정답)가
+/// 1:1로 동일하다는 불변식(구조 동등성 테스트가 보증)에 기대므로, 같은 cursor가
+/// 가리키는 블록의 의미는 보존되고 표시 문구만 바뀐다.
+pub fn relocalize(
+  session: LessonSession,
+  translated: schema.Lesson,
+) -> LessonSession {
+  LessonSession(..session, lesson: translated)
+}
+
 /// 현재 표시할 블록. `Done`이면 `None` — UI는 완료 화면으로 전환한다.
 pub fn current_block(session: LessonSession) -> Option(schema.LessonBlock) {
   case session.phase {
