@@ -10,9 +10,13 @@
 
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
+import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { config } from "./config.mjs";
 import { client } from "./llm.mjs";
 import { getHistory, commitTurn, reset, windowed } from "./memory.mjs";
+import { verifyGoogleIdToken, makeSessionToken, readSessionToken, sessionCookie } from "./auth.mjs";
+import { upsertUser, getUser, appendEvent, completedLessonIds } from "./store.mjs";
+import { analyze } from "./analytics.mjs";
 
 const app = new Hono();
 
@@ -26,7 +30,92 @@ app.use("/api/*", async (c, next) => {
 
 app.get("/api/health", (c) => c.json({ ok: true }));
 
+// ── 인증 (구글 로그인) ─────────────────────────────────────────────
+
+// 현재 세션의 유저 프로필(없으면 null). 쿠키만 신뢰한다.
+function currentUser(c) {
+  const userId = readSessionToken(getCookie(c, sessionCookie.name));
+  if (!userId) return null;
+  return getUser(userId)?.profile ?? null;
+}
+
+// 로그인 가능 여부 + 프론트가 GIS 초기화에 쓸 client id.
+app.get("/api/auth/config", (c) =>
+  c.json({ enabled: !!config.googleClientId, client_id: config.googleClientId ?? null }),
+);
+
+// 현재 로그인 상태.
+app.get("/api/auth/me", (c) => c.json({ user: currentUser(c) }));
+
+// 구글 ID 토큰(credential) 검증 → 유저 upsert → 세션 쿠키 발급.
+app.post("/api/auth/google", async (c) => {
+  if (!config.googleClientId) return c.json({ error: "login_disabled" }, 503);
+  let body;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid_json" }, 400);
+  }
+  const credential = typeof body?.credential === "string" ? body.credential : "";
+  if (!credential) return c.json({ error: "bad_request" }, 400);
+
+  let claims;
+  try {
+    claims = await verifyGoogleIdToken(credential, config.googleClientId);
+  } catch (e) {
+    console.error("[auth] verify failed:", e?.message ?? String(e));
+    return c.json({ error: "invalid_token" }, 401);
+  }
+
+  const profile = await upsertUser(claims);
+  setCookie(c, sessionCookie.name, makeSessionToken(profile.id), {
+    ...sessionCookie.options,
+    maxAge: sessionCookie.maxAge,
+  });
+  return c.json({ user: profile });
+});
+
+// 로그아웃 — 쿠키 삭제.
+app.post("/api/auth/logout", (c) => {
+  deleteCookie(c, sessionCookie.name, { path: "/" });
+  return c.json({ ok: true });
+});
+
+// ── 학습 진행/이벤트 ───────────────────────────────────────────────
+
+// 완료 레슨 목록(하이드레이션용). 비로그인은 401 → 프론트는 인메모리 유지.
+app.get("/api/progress", (c) => {
+  const user = currentUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  return c.json({ completed: completedLessonIds(user.id) });
+});
+
+// 이벤트 1건 적재(lesson_started / lesson_completed / exercise_submitted 등).
+app.post("/api/progress/event", async (c) => {
+  const user = currentUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  let body;
+  try {
+    body = await c.req.json();
+  } catch {
+    return c.json({ error: "invalid_json" }, 400);
+  }
+  const result = await appendEvent(user.id, body ?? {});
+  if (!result?.ok) return c.json({ error: "store_error" }, 500);
+  return c.json({ ok: true, completed: completedLessonIds(user.id) });
+});
+
+// 대시보드 분석(학습속도·성실성·완료목록). 커버리지 맵은 프론트가 합성.
+app.get("/api/dashboard", (c) => {
+  const user = currentUser(c);
+  if (!user) return c.json({ error: "unauthorized" }, 401);
+  const data = getUser(user.id);
+  return c.json({ user, analytics: analyze(data?.events ?? []) });
+});
+
 app.post("/api/chat", async (c) => {
+  // DASHSCOPE_API_KEY 미설정이면 채팅 비활성(로그인/진행/대시보드는 계속 동작).
+  if (!config.chatEnabled) return c.json({ error: "chat_disabled" }, 503);
   let body;
   try {
     body = await c.req.json();

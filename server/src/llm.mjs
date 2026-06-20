@@ -4,7 +4,7 @@
 import OpenAI from "openai";
 import { config } from "./config.mjs";
 
-export const client = new OpenAI({
-  apiKey: config.apiKey,
-  baseURL: config.baseURL,
-});
+// 키가 없으면 채팅 비활성 — 클라이언트를 만들지 않는다(서버는 계속 뜬다).
+export const client = config.chatEnabled
+  ? new OpenAI({ apiKey: config.apiKey, baseURL: config.baseURL })
+  : null;

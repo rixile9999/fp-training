@@ -3,14 +3,15 @@
 
 const API_KEY = process.env.DASHSCOPE_API_KEY;
 if (!API_KEY) {
-  console.error(
-    "[fatal] DASHSCOPE_API_KEY 가 설정되지 않았습니다. server/.env 에 넣거나 셸 환경변수로 주입하세요.",
+  console.warn(
+    "[warn] DASHSCOPE_API_KEY 미설정 — AI 채팅 사이드바만 비활성화됩니다(로그인·진행저장·대시보드는 정상). 채팅을 쓰려면 server/.env 에 키를 넣으세요.",
   );
-  process.exit(1);
 }
 
 export const config = {
-  apiKey: API_KEY,
+  apiKey: API_KEY ?? null,
+  // 채팅(DashScope) 사용 가능 여부 — 키가 있을 때만.
+  chatEnabled: !!API_KEY,
   // 기본값 = intl(싱가포르). 베이징 키면 DASHSCOPE_BASE_URL 로 바꾼다. region↔key 짝이 맞아야 함.
   baseURL:
     process.env.DASHSCOPE_BASE_URL ??
@@ -25,4 +26,7 @@ export const config = {
   maxMessageChars: Number(process.env.MAX_MESSAGE_CHARS ?? 8000),
   // DashScope 로 보낼 때 유지할 비-system 메시지 개수(시스템 프롬프트는 항상 보존).
   maxHistoryMessages: Number(process.env.MAX_HISTORY_MESSAGES ?? 24),
+  // 구글 로그인 OAuth Client ID(웹). 미설정이면 로그인 비활성(게스트 전용) —
+  // 프론트는 /api/auth/config 로 enabled 여부를 받아 버튼 노출을 결정한다.
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? null,
 };
