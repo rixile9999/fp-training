@@ -97,32 +97,69 @@ fn render_block(b: Block) -> List(Element(msg)) {
       text
       |> string.split("\n\n")
       |> list.filter(fn(p) { string.trim(p) != "" })
-      |> list.map(render_paragraph)
+      |> list.flat_map(render_paragraph)
   }
 }
 
-fn render_paragraph(block: String) -> Element(msg) {
-  let lines =
-    block
-    |> string.split("\n")
-    |> list.map(string.trim_start)
-    |> list.filter(fn(l) { l != "" })
-  case lines {
-    [] -> html.p([], [])
-    [single] ->
-      case parse_heading(single) {
-        Ok(#(level, body)) -> heading(level, body)
-        Error(_) ->
-          case is_bullet(single) {
-            True -> html.ul([attribute.class("md-ul")], [bullet_item(single)])
-            False -> html.p([], inline(single))
+// 한 블록(빈 줄로 구분된 문단) 안에서도 불릿·숫자 리스트가 일반 텍스트 줄과
+// 섞일 수 있다("…입니다:" 다음 줄에 바로 "- …"). 줄을 종류별 연속 구간으로
+// 묶어 각각 ul/ol/p 로 렌더한다 — 한 덩어리로 합쳐 리스트가 사라지는 걸 막는다.
+fn render_paragraph(block: String) -> List(Element(msg)) {
+  block
+  |> string.split("\n")
+  |> list.map(string.trim_start)
+  |> list.filter(fn(l) { l != "" })
+  |> group_lines
+  |> list.map(render_group)
+}
+
+type Kind {
+  KBullet
+  KOrdered
+  KText
+}
+
+fn classify(line: String) -> Kind {
+  case is_bullet(line), parse_ordered(line) {
+    True, _ -> KBullet
+    _, Ok(_) -> KOrdered
+    _, _ -> KText
+  }
+}
+
+// 연속한 같은 종류의 줄을 하나의 구간(#(종류, 줄들))으로 접는다. 원래 순서 유지.
+fn group_lines(lines: List(String)) -> List(#(Kind, List(String))) {
+  lines
+  |> list.fold([], fn(acc, line) {
+    let kind = classify(line)
+    case acc {
+      [#(k, items), ..rest] if k == kind -> [#(k, [line, ..items]), ..rest]
+      _ -> [#(kind, [line]), ..acc]
+    }
+  })
+  |> list.reverse
+  |> list.map(fn(g) {
+    let #(k, items) = g
+    #(k, list.reverse(items))
+  })
+}
+
+fn render_group(group: #(Kind, List(String))) -> Element(msg) {
+  let #(kind, lines) = group
+  case kind {
+    KBullet ->
+      html.ul([attribute.class("md-ul")], list.map(lines, bullet_item))
+    KOrdered ->
+      html.ol([attribute.class("md-ol")], list.map(lines, ordered_item))
+    KText ->
+      case lines {
+        [single] ->
+          case parse_heading(single) {
+            Ok(#(level, body)) -> heading(level, body)
+            Error(_) -> html.p([], inline(single))
           }
-      }
-    many ->
-      case list.all(many, is_bullet) {
-        True -> html.ul([attribute.class("md-ul")], list.map(many, bullet_item))
         // 소프트 개행은 공백으로 접어 한 문단으로 (마크다운 표준 동작)
-        False -> html.p([], inline(string.join(many, " ")))
+        many -> html.p([], inline(string.join(many, " ")))
       }
   }
 }
@@ -133,6 +170,35 @@ fn is_bullet(line: String) -> Bool {
 
 fn bullet_item(line: String) -> Element(msg) {
   html.li([], inline(string.drop_start(line, 2)))
+}
+
+// "1. ", "12. " 처럼 [숫자]+". " 로 시작하면 본문을 돌려준다.
+fn parse_ordered(line: String) -> Result(String, Nil) {
+  case string.split_once(line, ". ") {
+    Ok(#(prefix, body)) ->
+      case prefix != "" && is_all_digits(prefix) {
+        True -> Ok(body)
+        False -> Error(Nil)
+      }
+    Error(_) -> Error(Nil)
+  }
+}
+
+fn ordered_item(line: String) -> Element(msg) {
+  case parse_ordered(line) {
+    Ok(body) -> html.li([], inline(body))
+    Error(_) -> html.li([], inline(line))
+  }
+}
+
+fn is_all_digits(s: String) -> Bool {
+  string.to_graphemes(s)
+  |> list.all(fn(c) {
+    case c {
+      "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" -> True
+      _ -> False
+    }
+  })
 }
 
 fn parse_heading(line: String) -> Result(#(Int, String), Nil) {
